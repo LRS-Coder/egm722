@@ -67,11 +67,15 @@ def scale_bar(ax, length=20, location=(0.92, 0.95)):
     sby = y0 + (y1 - y0) * location[1] # get the right y coordinate of the scale bar
 
     ax.plot([sbx, sbx-length*1000], [sby, sby], color='k', linewidth=4, transform=ax.projection) # plot a thick black line
-    ax.plot([sbx-(length/2)*1000, sbx-length*1000], [sby, sby], color='w', linewidth=2, transform=ax.projection) # plot a white line from 0 to halfway
+    ax.plot([sbx-(length/2)*1000, sbx], [sby, sby], color='w', linewidth=2, transform=ax.projection) # plot a white line from quaterway to halfway
+    ax.plot([sbx-(length*3/4)*1000, sbx-(length/2)*1000], [sby, sby], color='k', linewidth=2, transform=ax.projection)  # plot a black line from twentieth-way to quaterway
+    ax.plot([sbx-(length*19/20)*1000, sbx-(length*3/4)*1000], [sby, sby], color='w', linewidth=2, transform=ax.projection)  # plot a white line from 0 to twentieth-way
 
-    ax.text(sbx, sby-(length/4)*1000, f"{length} km", ha='center', transform=ax.projection, fontsize=6) # add a label at the right side
-    ax.text(sbx-(length/2)*1000, sby-(length/4)*1000, f"{int(length/2)} km", ha='center', transform=ax.projection, fontsize=6) # add a label in the center
-    ax.text(sbx-length*1000, sby-(length/4)*1000, '0 km', ha='center', transform=ax.projection, fontsize=6) # add a label at the left side
+    ax.text(sbx, sby-(length/4)*1000, f"{length} km", va='center', rotation=-45, transform=ax.projection, fontsize=6) # add a label at the right side
+    ax.text(sbx-(length/2)*1000, sby-(length/4)*1000, f"{int(length/2)} km", va='center', rotation=-45, transform=ax.projection, fontsize=6) # add a label in the center
+    ax.text(sbx-(length*3/4)*1000, sby-(length/4)*1000, f"{int(length/4)} km", va='center', rotation=-45, transform=ax.projection, fontsize=6)  # add a label a quater in from left
+    ax.text(sbx-(length*19/20)*1000, sby-(length/4)*1000, f"{int(length/20)} km", va='center', rotation=-45, transform=ax.projection, fontsize=6)  # add a label a twentieth in from left
+    ax.text(sbx-(length*11/10)*1000, sby-(length/4)*1000, '0 km', va='center', rotation=-45, transform=ax.projection, fontsize=6) # add a label at the left side shifted to avoid overlap
 
     return ax
 
