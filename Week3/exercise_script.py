@@ -35,6 +35,13 @@ join = gpd.sjoin(wards, counties, how='inner', lsuffix='left', rsuffix='right')
 # print a summary of the population for each county, based on the electoral wards
 summary = join.groupby(['CountyName'])['Population'].sum()
 print(summary)
+
+# calculate wards in more than one county
+ward_counts = join.groupby(['Ward'])['CountyName'].nunique()
+cross_county_wards = ward_counts[ward_counts > 1]
+cross_county_wards_list = cross_county_wards.index.to_list()
+cross_county_wards_pop = wards[wards['Ward'].isin(cross_county_wards_list)]['Population'].sum()
+print(f'There are {len(cross_county_wards)} wards that cross county borders, with a total population of {cross_county_wards_pop}.')
 # ---------------------------------------------------------------------------------------------------------------------
 # below here, you may need to modify the script somewhat to create your map.
 # create a crs using ccrs.UTM() that corresponds to our CRS
