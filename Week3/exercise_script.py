@@ -1,3 +1,4 @@
+import os
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -14,6 +15,26 @@ import matplotlib.patches as mpatches
 
 # your analysis goes here...
 
+# generate matplotlib handles to create a legend of the features we put in our map.
+def generate_handles(labels, colors, edge='k', alpha=1):
+    lc = len(colors)  # get the length of the color list
+    handles = []
+    for ii in range(len(labels)):
+        handles.append(mpatches.Rectangle((0, 0), 1, 1, facecolor=colors[ii % lc], edgecolor=edge, alpha=alpha))
+    return handles
+
+plt.ion()
+
+# load the necessary data here and transform to a UTM projection
+counties = gpd.read_file(os.path.abspath('data_files/Counties.shp')).to_crs(epsg=32629)
+wards = gpd.read_file(os.path.abspath('data_files/NI_Wards.shp')).to_crs(epsg=32629)
+
+# do a spatial join of wards and counties
+join = gpd.sjoin(wards, counties, how='inner', lsuffix='left', rsuffix='right')
+
+# print a summary of the population for each county, based on the electoral wards
+summary = join.groupby(['CountyName'])['Population'].sum()
+print(summary)
 # ---------------------------------------------------------------------------------------------------------------------
 # below here, you may need to modify the script somewhat to create your map.
 # create a crs using ccrs.UTM() that corresponds to our CRS
