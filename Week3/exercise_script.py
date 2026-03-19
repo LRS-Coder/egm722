@@ -36,12 +36,19 @@ join = gpd.sjoin(wards, counties, how='inner', lsuffix='left', rsuffix='right')
 summary = join.groupby(['CountyName'])['Population'].sum()
 print(summary)
 
-# calculate wards in more than one county
+# calculate wards in more than one county and their combined population
 ward_counts = join.groupby(['Ward'])['CountyName'].nunique()
 cross_county_wards = ward_counts[ward_counts > 1]
 cross_county_wards_list = cross_county_wards.index.to_list()
 cross_county_wards_pop = wards[wards['Ward'].isin(cross_county_wards_list)]['Population'].sum()
 print(f'There are {len(cross_county_wards)} wards that cross county borders, with a total population of {cross_county_wards_pop}.')
+
+# calculate the ward with the most and least population
+ward_max_pop = wards.loc[wards['Population'].idxmax()]
+ward_min_pop = wards.loc[wards['Population'].idxmin()]
+print(f'The ward with the highest population was {ward_max_pop['Ward']} with {ward_max_pop['Population']} people.')
+print(f'The ward with the lowest population was {ward_min_pop['Ward']} with {ward_min_pop['Population']} people.')
+
 # ---------------------------------------------------------------------------------------------------------------------
 # below here, you may need to modify the script somewhat to create your map.
 # create a crs using ccrs.UTM() that corresponds to our CRS
