@@ -52,6 +52,17 @@ def img_display(img, ax, bands, stretch_args=None, **imshow_args):
     return handle, ax
 
 
+def generate_handles(labels, colors, edge='k', alpha=1):
+    '''
+    This is where you should write a docstring.
+    '''
+    lc = len(colors)  # get the length of the color list
+    handles = []
+    for i in range(len(labels)):
+        handles.append(mpatches.Rectangle((0, 0), 1, 1, facecolor=colors[i % lc], edgecolor=edge, alpha=alpha))
+    return handles
+
+
 # ------------------------------------------------------------------------
 # note - rasterio's open() function works in much the same way as python's - once we open a file,
 # we have to make sure to close it. One easy way to do this in a script is by using the with statement shown
@@ -60,30 +71,54 @@ with rio.open('data_files/NI_Mosaic.tif') as dataset:
     img = dataset.read()
     xmin, ymin, xmax, ymax = dataset.bounds
 
+myCRS = ccrs.UTM(29)
+
 # your code goes here!
 # start by loading the outlines and point data to add to the map
-
+counties = gpd.read_file('../Week3/data_files/Counties.shp').to_crs('epsg:32629')
+towns = gpd.read_file('../Week2/data_files/Towns.shp').to_crs('epsg:32629')
 
 # next, create the figure and axis objects to add the map to
-
+fig, ax = plt.subplots(1, 1, figsize=(10, 10), subplot_kw=dict(projection=myCRS))
 
 # now, add the satellite image to the map
+my_kwargs = {'extent': [xmin, xmax, ymin, ymax],
+             'transform': myCRS}
 
+h, ax = img_display(img, ax, [2, 1, 0], stretch_args={'pmin': 0.1, 'pmax': 99.9}, **my_kwargs)
 
 # next, add the county outlines to the map
-
+county_outlines = ShapelyFeature(counties['geometry'], myCRS, edgecolor='r', facecolor='none')
+ax.add_feature(county_outlines)
 
 # then, add the town and city points to the map, but separately
+is_town = towns['STATUS'] == 'Town'
+is_city = towns['STATUS'] == 'City'
 
+town_handle = ax.plot(towns[is_town].geometry.x, towns[is_town].geometry.y, 's', color='b', ms=6, transform=myCRS)
+city_handle = ax.plot(towns[is_city].geometry.x, towns[is_city].geometry.y, 'd', color='m', ms=8, transform=myCRS)
 
 # finally, try to add a transparent overlay to the map
 # note: one way you could do this is to combine the individual county shapes into a single shape, then
 # use a geometric operation, such as a symmetric difference, to create a hole in a rectangle.
 # then, you can add the output of the symmetric difference operation to the map as a semi-transparent feature.
-
+union = unary_union(counties['geometry'].values)
+border = Polygon([(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)])
+overlay = ShapelyFeature(border.symmetric_difference(union), myCRS, facecolor='w', alpha=0.5)
+ax.add_feature(overlay)
 
 # last but not least, add gridlines to the map
+gridlines = ax.gridlines(draw_labels=True,
+                         xlocs=[-8, -7.5, -7, -6.5, -6, -5.5],
+                         ylocs=[54, 54.5, 55, 55.5])
+gridlines.right_labels = False
+gridlines.bottom_labels = False
 
+# penultimately add legends
+county_handles = generate_handles([''], ['none'], edge='r')
+
+ax.legend(county_handles + town_handle + city_handle,
+          ['County Boundaries', 'Town', 'City'], fontsize=12, loc='upper left', framealpha=1)
 
 # and of course, save the map!
-
+fig.savefig('imgs/week4_map.png', dpi=300, bbox_inches='tight')
